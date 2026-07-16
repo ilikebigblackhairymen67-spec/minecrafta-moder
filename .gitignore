@@ -1,0 +1,38 @@
+# Ignore Gradle files
+.gradle/
+build/
+dist/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.classpath
+*.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Minecraft
+eclipse/
+run/
+out/
+
+# Build artifacts
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+
+# Logs
+*.log
