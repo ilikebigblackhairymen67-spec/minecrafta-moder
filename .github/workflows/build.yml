@@ -30,7 +30,10 @@ jobs:
       
       - name: Extract mod source from ZIP (if exists)
         run: |
-          if [ -f "src/mod-source.zip" ]; then
+          if [ -f "src/Huawei_pack.zip" ]; then
+            unzip -q src/Huawei_pack.zip -d forge-mdk/src/main/java/
+            echo "Mod source extracted"
+          elif [ -f "src/mod-source.zip" ]; then
             unzip -q src/mod-source.zip -d forge-mdk/src/main/java/
             echo "Mod source extracted"
           elif [ -d "src/main/java" ]; then
