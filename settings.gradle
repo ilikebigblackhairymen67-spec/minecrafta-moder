@@ -1,0 +1,4 @@
+rootProject.name = 'minecraft-mod'
+
+gradle.ext.mc_version = "1.19.2"
+gradle.ext.forge_version = "43.1.1"
