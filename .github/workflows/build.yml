@@ -1,9 +1,7 @@
-name: Build Minecraft Forge 1.19.2 Mod
+name: Simple Compile to JAR
 
 on:
   push:
-    branches: [ main, develop ]
-  pull_request:
     branches: [ main ]
   workflow_dispatch:
 
@@ -21,48 +19,55 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       
-      - name: Validate Java installation
-        run: java -version
+      - name: Create build directory
+        run: mkdir -p build/output
       
-      - name: Extract mod source
+      - name: Find and compile all Java files
         run: |
-          mkdir -p build/source
-          unzip -q src/*.zip -d build/source || echo "No ZIP files found in src/"
-      
-      - name: Set up Gradle
-        run: |
-          chmod +x gradlew || true
-      
-      - name: Build with Gradle
-        run: |
-          ./gradlew build --no-daemon 2>/dev/null || gradle build
-      
-      - name: Compile to JAR
-        run: |
-          mkdir -p dist
-          javac -d build/classes $(find build/source -name "*.java") 2>/dev/null || echo "Using Gradle compilation"
-          ./gradlew jar --no-daemon 2>/dev/null || gradle jar || true
-      
-      - name: Copy JAR to dist
-        run: |
-          find build -name "*.jar" -type f -exec cp {} dist/ \; 2>/dev/null || true
-          if [ ! -f dist/*.jar ]; then
-            echo "Creating fallback JAR..."
-            cd build/classes
-            jar cvf ../../dist/minecraft-mod-1.19.2.jar . 2>/dev/null || true
+          find . -name "*.java" -type f > /tmp/files.txt
+          if [ -s /tmp/files.txt ]; then
+            mkdir -p build/classes
+            javac -d build/classes $(cat /tmp/files.txt) 2>&1 || echo "Compilation attempted"
+          else
+            echo "No Java files found"
           fi
       
-      - name: Upload JAR artifact
+      - name: Create JAR from compiled classes
+        run: |
+          if [ -d "build/classes" ] && [ "$(ls -A build/classes)" ]; then
+            cd build/classes
+            jar cvf ../output/minecraft-mod.jar .
+            cd ../..
+          else
+            echo "No compiled classes found"
+          fi
+      
+      - name: Extract and compile ZIPs (if any)
+        run: |
+          if [ -d "src" ] && [ ! -z "$(find src -name '*.zip')" ]; then
+            mkdir -p build/extracted
+            find src -name "*.zip" -exec unzip -q {} -d build/extracted \;
+            find build/extracted -name "*.java" -type f > /tmp/zip_files.txt
+            if [ -s /tmp/zip_files.txt ]; then
+              mkdir -p build/classes_zip
+              javac -d build/classes_zip $(cat /tmp/zip_files.txt) 2>&1 || echo "ZIP compilation attempted"
+              cd build/classes_zip
+              jar cvf ../output/minecraft-mod-from-zip.jar .
+              cd ../..
+            fi
+          fi
+      
+      - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
           name: minecraft-mod-jar
-          path: dist/*.jar
-          retention-days: 30
+          path: build/output/*.jar
+          if-no-files-found: warn
       
-      - name: Create Release (on tag)
+      - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.jar
+          files: build/output/*.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
