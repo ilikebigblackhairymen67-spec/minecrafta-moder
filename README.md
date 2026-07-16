@@ -1,53 +1,43 @@
-# Minecraft Forge 1.19.2 Mod
+# Minecraft Mod Compiler
 
-Automated GitHub Actions workflow to compile ZIP files to JAR for Minecraft Forge 1.19.2 mods.
+Super simple workflow - just add your Java files and it compiles to JAR!
 
-## Features
+## How to Use
 
-- ✅ Automatic builds on push/pull requests
-- ✅ Java 17 JDK setup
-- ✅ Gradle-based compilation
-- ✅ ZIP extraction and compilation
-- ✅ JAR artifact generation
-- ✅ Automated releases on tags
+### Method 1: Direct Java Files (Easiest)
+1. Create folders in your repo:
+   ```
+   src/main/java/
+   ```
 
-## Directory Structure
+2. Add your `.java` files there
 
-```
-.
-├── .github/workflows/
-│   └── build.yml          # GitHub Actions workflow
-├── src/
-│   └── main/
-│       ├── java/          # Java source files
-│       └── resources/     # Resource files
-├── build.gradle           # Gradle configuration
-├── settings.gradle        # Gradle settings
-└── README.md
-```
+3. Push to GitHub → Automatically compiles to JAR
 
-## Setup
+### Method 2: Upload ZIP
+1. Create `src/` folder
 
-1. **Upload your mod source** - Place ZIP files in `src/` directory
-2. **Push to GitHub** - The workflow runs automatically
-3. **Check Actions tab** - Monitor build progress
-4. **Download JAR** - Get compiled JAR from Artifacts
+2. Put your mod source ZIP in there
 
-## Creating a Release
+3. Push → Workflow extracts & compiles
 
-Tag your commit to auto-create a release with JAR:
+### Method 3: Just Drop Java Files Anywhere
+1. Add `.java` files anywhere in your repo
 
+2. Push → Finds and compiles them automatically
+
+## Get Your JAR
+
+- Go to **Actions** tab
+- Click the latest build
+- Download from **Artifacts** → `minecraft-mod.jar`
+
+## Create a Release (Optional)
+
+Tag your commit and it auto-releases on GitHub:
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-## Minecraft Forge 1.19.2 Requirements
-
-- Java 17+
-- Forge MDK for 1.19.2
-- Gradle 7.0+
-
-## License
-
-Customize as needed for your mod!
+Done! 🚀
