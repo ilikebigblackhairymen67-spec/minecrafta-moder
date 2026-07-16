@@ -1,4 +1,4 @@
-name: Simple Compile to JAR
+name: Build Minecraft Forge 1.19.2 Mod
 
 on:
   push:
@@ -18,44 +18,40 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: gradle
       
-      - name: Create build directory
-        run: mkdir -p build/output
-      
-      - name: Find and compile all Java files
+      - name: Download Forge MDK 1.19.2
         run: |
-          find . -name "*.java" -type f > /tmp/files.txt
-          if [ -s /tmp/files.txt ]; then
-            mkdir -p build/classes
-            javac -d build/classes $(cat /tmp/files.txt) 2>&1 || echo "Compilation attempted"
-          else
-            echo "No Java files found"
+          mkdir -p forge-mdk
+          cd forge-mdk
+          wget -q https://maven.minecraftforge.net/net/minecraftforge/forge/1.19.2-43.1.1/forge-1.19.2-43.1.1-mdk.zip
+          unzip -q forge-1.19.2-43.1.1-mdk.zip
+          cd ..
+      
+      - name: Extract mod source from ZIP (if exists)
+        run: |
+          if [ -f "src/mod-source.zip" ]; then
+            unzip -q src/mod-source.zip -d forge-mdk/src/main/java/
+            echo "Mod source extracted"
+          elif [ -d "src/main/java" ]; then
+            cp -r src/main/java/* forge-mdk/src/main/java/ 2>/dev/null || true
+            echo "Mod Java files copied"
           fi
       
-      - name: Create JAR from compiled classes
+      - name: Set up Gradle wrapper permissions
         run: |
-          if [ -d "build/classes" ] && [ "$(ls -A build/classes)" ]; then
-            cd build/classes
-            jar cvf ../output/minecraft-mod.jar .
-            cd ../..
-          else
-            echo "No compiled classes found"
-          fi
+          cd forge-mdk
+          chmod +x gradlew
       
-      - name: Extract and compile ZIPs (if any)
+      - name: Build with Gradle
         run: |
-          if [ -d "src" ] && [ ! -z "$(find src -name '*.zip')" ]; then
-            mkdir -p build/extracted
-            find src -name "*.zip" -exec unzip -q {} -d build/extracted \;
-            find build/extracted -name "*.java" -type f > /tmp/zip_files.txt
-            if [ -s /tmp/zip_files.txt ]; then
-              mkdir -p build/classes_zip
-              javac -d build/classes_zip $(cat /tmp/zip_files.txt) 2>&1 || echo "ZIP compilation attempted"
-              cd build/classes_zip
-              jar cvf ../output/minecraft-mod-from-zip.jar .
-              cd ../..
-            fi
-          fi
+          cd forge-mdk
+          ./gradlew build --no-daemon
+      
+      - name: Copy JAR to output
+        run: |
+          mkdir -p build/output
+          find forge-mdk/build/libs -name "*.jar" -exec cp {} build/output/ \;
       
       - name: Upload JAR
         uses: actions/upload-artifact@v4
